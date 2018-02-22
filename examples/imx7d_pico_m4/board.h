@@ -84,6 +84,16 @@
 #define BOARD_GPIO_LED_RDC_PDAP               rdcPdapGpio2
 #define BOARD_GPIO_LED_CONFIG                 (&gpioLed)
 
+#define BOARD_GPIO_SENSOR_CCM_CCGR            ccmCcgrGateGpio2
+#define BOARD_GPIO_SENSOR_RDC_PDAP            rdcPdapGpio2
+#define BOARD_GPIO_SENSOR_CONFIG              (&gpioSensorInt)
+#define BOARD_GPIO_SENSOR_IRQ_NUM             GPIO2_INT15_0_IRQn
+#define BOARD_GPIO_SENSOR_HANDLER             GPIO2_INT15_0_Handler
+
+#define BOARD_GPIO_GYR_CONFIG                 (&gpioGyrInt)
+
+#define BOARD_GPIO_PRESSURE_CONFIG            (&gpioPressureInt)
+
 /* Debug UART information for this board */
 #define BOARD_DEBUG_UART_RDC_PDAP             rdcPdapUart6
 #define BOARD_DEBUG_UART_CCM_ROOT             ccmRootUart6
@@ -98,6 +108,16 @@
 #define BOARD_MU_BASE_ADDR                    MUB
 #define BOARD_MU_CCM_CCGR                     ccmCcgrGateMu
 #define BOARD_MU_RDC_PDAP                     rdcPdapMuB
+
+/* I2C information for this board */
+#define BOARD_I2C_RDC_PDAP                    rdcPdapI2c1
+#define BOARD_I2C_CCM_ROOT                    ccmRootI2c1
+#define BOARD_I2C_CCM_CCGR                    ccmCcgrGateI2c1
+#define BOARD_I2C_BASEADDR                    I2C1
+#define BOARD_I2C_IRQ_NUM                     I2C1_IRQn
+#define BOARD_I2C_HANDLER                     I2C1_Handler
+#define BOARD_I2C_FXAS21002_ADDR              (0x21)
+#define BOARD_I2C_FXOS8700_ADDR               (0x1E)
 
 /* GPC information for this board*/
 #define BOARD_GPC_BASEADDR                    GPC

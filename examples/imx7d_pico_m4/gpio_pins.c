@@ -33,14 +33,49 @@
 
 gpio_config_t gpioLed = {
     "USER LED",                         /* name */
-    &IOMUXC_SW_MUX_CTL_PAD_EPDC_DATA06,  /* muxReg */
+    &IOMUXC_SW_MUX_CTL_PAD_EPDC_DATA07,  /* muxReg */
     5,                                  /* muxConfig */
-    &IOMUXC_SW_PAD_CTL_PAD_EPDC_DATA06,  /* padReg */
+    &IOMUXC_SW_PAD_CTL_PAD_EPDC_DATA07,  /* padReg */
     0,                                  /* padConfig */
     GPIO2,                              /* base */
-    6                                   /* pin */
+    7                                   /* pin */
 };
 
+gpio_config_t gpioSensorInt = {
+    "SensorInt",                                    /* name */
+    &IOMUXC_SW_MUX_CTL_PAD_EPDC_DATA01,             /* muxReg */
+    5,                                              /* muxConfig */
+    &IOMUXC_SW_PAD_CTL_PAD_EPDC_DATA01,             /* padReg */
+    IOMUXC_SW_PAD_CTL_PAD_EPDC_DATA01_PS(2)   |     /* padConfig */
+    IOMUXC_SW_PAD_CTL_PAD_EPDC_DATA01_PE_MASK |
+    IOMUXC_SW_PAD_CTL_PAD_EPDC_DATA01_HYS_MASK,
+    GPIO2,                                          /* base */
+    1                                               /* pin */
+};
+
+gpio_config_t gpioGyrInt = {
+    "GyrInt",                                       /* name */
+    &IOMUXC_SW_MUX_CTL_PAD_EPDC_DATA00,             /* muxReg */
+    5,                                              /* muxConfig */
+    &IOMUXC_SW_PAD_CTL_PAD_EPDC_DATA00,             /* padReg */
+    IOMUXC_SW_PAD_CTL_PAD_EPDC_DATA00_PS(2)   |     /* padConfig */
+    IOMUXC_SW_PAD_CTL_PAD_EPDC_DATA00_PE_MASK |
+    IOMUXC_SW_PAD_CTL_PAD_EPDC_DATA00_HYS_MASK,
+    GPIO2,                                          /* base */
+    0                                               /* pin */
+};
+
+gpio_config_t gpioPressureInt = {
+    "PressureInt",                                  /* name */
+    &IOMUXC_SW_MUX_CTL_PAD_EPDC_DATA06,             /* muxReg */
+    5,                                              /* muxConfig */
+    &IOMUXC_SW_PAD_CTL_PAD_EPDC_DATA06,             /* padReg */
+    IOMUXC_SW_PAD_CTL_PAD_EPDC_DATA06_PS(2)   |     /* padConfig */
+    IOMUXC_SW_PAD_CTL_PAD_EPDC_DATA06_PE_MASK |
+    IOMUXC_SW_PAD_CTL_PAD_EPDC_DATA06_HYS_MASK,
+    GPIO2,                                          /* base */
+    6                                               /* pin */
+};
 
 void configure_gpio_pin(gpio_config_t *config)
 {
