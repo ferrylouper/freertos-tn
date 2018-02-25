@@ -210,7 +210,36 @@ int main(void)
                 PRINTF( "%02x ", app_buf[i] );
             PRINTF( "\r\n" );
         }
-//#if 0
+
+        for( ; ; )
+        {
+            char c = GETCHAR();
+            switch( c )
+            {
+            case 1:
+                PRINTF( "1\r\n" );
+                goto out;
+            default:
+                PRINTF( "default\r\n" );
+                tx_buf = rpmsg_alloc_tx_buffer(app_chnl, &size, RPMSG_TRUE);
+                assert(tx_buf);
+
+                /* Copy string to RPMsg tx buffer */
+                const char response[] = "response";
+                memcpy(tx_buf, response, strlen(response) );
+
+                /* Echo back received message with nocopy send */
+                rpmsg_sendto_nocopy(app_chnl, tx_buf, len, app_msg[app_idx].src);
+
+                /* Release held RPMsg rx buffer */
+                rpmsg_release_rx_buffer(app_chnl, app_msg[app_idx].data);
+                app_idx = (app_idx + 1) % STRING_BUFFER_CNT;
+            }
+
+out:
+            break;
+        }
+#if 0
         /* Get tx buffer from RPMsg */
         time_delay( 10000 );
         tx_buf = rpmsg_alloc_tx_buffer(app_chnl, &size, RPMSG_TRUE);
@@ -219,13 +248,14 @@ int main(void)
         memcpy(tx_buf, app_buf, len);
         /* Echo back received message with nocopy send */
         rpmsg_sendto_nocopy(app_chnl, tx_buf, len, app_msg[app_idx].src);
-//#endif
+
         /* Release held RPMsg rx buffer */
         rpmsg_release_rx_buffer(app_chnl, app_msg[app_idx].data);
         app_idx = (app_idx + 1) % STRING_BUFFER_CNT;
 
         /* Once a message is consumed, minus the msg_count and might enable MU interrupt again */
         rpmsg_enable_rx_int(true);
+#endif
     }
 }
 
