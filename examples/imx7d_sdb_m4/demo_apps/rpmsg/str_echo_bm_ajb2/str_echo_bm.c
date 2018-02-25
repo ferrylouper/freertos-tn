@@ -94,6 +94,7 @@ static void rpmsg_enable_rx_int(bool enable)
 static void rpmsg_read_cb(struct rpmsg_channel *rp_chnl, void *data, int len,
                 void * priv, unsigned long src)
 {
+    //PRINTF( "%s\r\n", __func__ );
     /*
      * Temperorily Disable MU Receive Interrupt to avoid master
      * sending too many messages and remote will fail to keep pace
@@ -129,6 +130,7 @@ static void rpmsg_channel_deleted(struct rpmsg_channel *rp_chnl)
  */
 void BOARD_MU_HANDLER(void)
 {
+    //PRINTF( "%s\r\n", __func__ );
     /*
      * calls into rpmsg_handler provided by middleware
      */
@@ -162,16 +164,16 @@ int main(void)
     PRINTF("RPMSG Init as Remote\r\n");
     rpmsg_init(0, &rdev, rpmsg_channel_created, rpmsg_channel_deleted, rpmsg_read_cb, RPMSG_MASTER);
 
+    int msgs = 0;
+
     /*
      * str_echo demo loop
      */
     for (;;)
     {
         /* Wait message to be available */
-        while (msg_count == 0)
-	{
-	}
-
+        while (msg_count == 0) { }
+        
         /* Copy string from RPMsg rx buffer */
         len = app_msg[app_idx].len;
         assert(len < sizeof(app_buf));
@@ -181,7 +183,14 @@ int main(void)
         if ((len == 2) && (app_buf[0] == 0xd) && (app_buf[1] == 0xa))
             PRINTF("Get New Line From Master Side From Slot %d\r\n", app_idx);
         else
-            PRINTF("Get Message From Master Side : \"%s\" [len : %d] from slot %d\r\n", app_buf, len, app_idx);
+        {
+            //PRINTF("Get Message From Master Side : [len : %d] from slot %d\r\n", len, app_idx);
+            //PRINTF("Get Message From Master Side : \"%s\" [len : %d] from slot %d\r\n", app_buf, len, app_idx);
+            PRINTF( "got  [%02d]: ", ++msgs );
+            for( int i = 0; i < len; i++ )
+                PRINTF( " %02x", app_buf[i] );
+            PRINTF( "\r\n" );
+        }
 
         /* Get tx buffer from RPMsg */
         tx_buf = rpmsg_alloc_tx_buffer(app_chnl, &size, RPMSG_TRUE);
