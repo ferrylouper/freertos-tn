@@ -186,7 +186,7 @@ int main(void)
         {
             //PRINTF("Get Message From Master Side : [len : %d] from slot %d\r\n", len, app_idx);
             //PRINTF("Get Message From Master Side : \"%s\" [len : %d] from slot %d\r\n", app_buf, len, app_idx);
-            PRINTF( "got  [%02d]: ", ++msgs );
+            PRINTF( "got  [%02d]: ", msgs++ );
             for( int i = 0; i < len; i++ )
                 PRINTF( " %02x", app_buf[i] );
             PRINTF( "\r\n" );
