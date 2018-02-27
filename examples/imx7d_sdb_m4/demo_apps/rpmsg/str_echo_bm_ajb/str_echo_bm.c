@@ -1,5 +1,4 @@
-/*
- * Copyright (c) 2015, Freescale Semiconductor, Inc.
+opyright (c) 2015, Freescale Semiconductor, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -79,7 +78,6 @@ static volatile int32_t msg_count = 0;
 
 static void rpmsg_enable_rx_int(bool enable)
 {
-    PRINTF( "rpmsg_enable_rx_int()\r\n" );
     if (enable)
     {
         if ((--msg_count) == 0)
@@ -95,7 +93,6 @@ static void rpmsg_enable_rx_int(bool enable)
 static void rpmsg_read_cb(struct rpmsg_channel *rp_chnl, void *data, int len,
                 void * priv, unsigned long src)
 {
-    PRINTF( "rpmsg_read_cb\r\n" );
     /*
      * Temperorily Disable MU Receive Interrupt to avoid master
      * sending too many messages and remote will fail to keep pace
@@ -116,7 +113,6 @@ static void rpmsg_read_cb(struct rpmsg_channel *rp_chnl, void *data, int len,
 /* rpmsg_rx_callback will call into this for a channel creation event*/
 static void rpmsg_channel_created(struct rpmsg_channel *rp_chnl)
 {
-    PRINTF( "rpmsg_channel_created\r\n" );
     /* We should give the created rp_chnl handler to app layer */
     app_chnl = rp_chnl;
 
@@ -132,23 +128,10 @@ static void rpmsg_channel_deleted(struct rpmsg_channel *rp_chnl)
  */
 void BOARD_MU_HANDLER(void)
 {
-    PRINTF( "BOARD_MU_HANDLER() [MU ISR]\r\n" );
     /*
      * calls into rpmsg_handler provided by middleware
      */
     rpmsg_handler();
-}
-
-void time_delay( int num_msec )
-{
-    unsigned int loop;
-    SystemCoreClockUpdate();
-    loop = SystemCoreClock / 3 / 1000 * num_msec;
-    while( loop )
-    {
-        __NOP();
-        loop--;
-    }
 }
 
 /*!
@@ -160,8 +143,6 @@ int main(void)
     int len;
     void *tx_buf;
     unsigned long size;
-    int msgs_rxd = 0;
-    unsigned long total_bytes = 0;
 
     hardware_init();
 
@@ -187,9 +168,8 @@ int main(void)
     {
         /* Wait message to be available */
         while (msg_count == 0)
-	{
-	}
-        PRINTF( "break out of for(): msg_count = %d\r\n", msg_count );
+    {
+    }
 
         /* Copy string from RPMsg rx buffer */
         len = app_msg[app_idx].len;
@@ -198,50 +178,11 @@ int main(void)
         app_buf[len] = 0; /* End string by '\0' */
 
         if ((len == 2) && (app_buf[0] == 0xd) && (app_buf[1] == 0xa))
-        {
             PRINTF("Get New Line From Master Side From Slot %d\r\n", app_idx);
-        }
         else
-        {
-            //PRINTF("Get Message From Master Side : \"%s\" [len : %d] from slot %d\r\n", app_buf, len, app_idx);
-            total_bytes += len;
-            PRINTF( "msg %4d  slot %u  bytes %d  total bytes: %u: ", ++msgs_rxd, app_idx, len, total_bytes );
-            for( int i = 0; i < len; ++i )
-                PRINTF( "%02x ", app_buf[i] );
-            PRINTF( "\r\n" );
-        }
+            PRINTF("Get Message From Master Side : \"%s\" [len : %d] from slot %d\r\n", app_buf, len, app_idx);
 
-        for( ; ; )
-        {
-            char c = GETCHAR();
-            switch( c )
-            {
-            case 1:
-                PRINTF( "1\r\n" );
-                goto out;
-            default:
-                PRINTF( "default\r\n" );
-                tx_buf = rpmsg_alloc_tx_buffer(app_chnl, &size, RPMSG_TRUE);
-                assert(tx_buf);
-
-                /* Copy string to RPMsg tx buffer */
-                const char response[] = "response";
-                memcpy(tx_buf, response, strlen(response) );
-
-                /* Echo back received message with nocopy send */
-                rpmsg_sendto_nocopy(app_chnl, tx_buf, len, app_msg[app_idx].src);
-
-                /* Release held RPMsg rx buffer */
-                rpmsg_release_rx_buffer(app_chnl, app_msg[app_idx].data);
-                app_idx = (app_idx + 1) % STRING_BUFFER_CNT;
-            }
-
-out:
-            break;
-        }
-#if 0
         /* Get tx buffer from RPMsg */
-        time_delay( 10000 );
         tx_buf = rpmsg_alloc_tx_buffer(app_chnl, &size, RPMSG_TRUE);
         assert(tx_buf);
         /* Copy string to RPMsg tx buffer */
@@ -255,7 +196,6 @@ out:
 
         /* Once a message is consumed, minus the msg_count and might enable MU interrupt again */
         rpmsg_enable_rx_int(true);
-#endif
     }
 }
 
