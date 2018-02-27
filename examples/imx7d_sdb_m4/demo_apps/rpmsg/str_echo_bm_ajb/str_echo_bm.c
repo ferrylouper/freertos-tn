@@ -1,4 +1,5 @@
-opyright (c) 2015, Freescale Semiconductor, Inc.
+/*
+ * Copyright (c) 2015, Freescale Semiconductor, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
