@@ -34,6 +34,7 @@
 #include "board.h"
 #include "mu_imx.h"
 #include "debug_console_imx.h"
+#include "message_protocol.h"
 
 /*
  * APP decided interrupt priority
@@ -71,10 +72,10 @@ typedef struct
 
 /* Globals */
 static struct rpmsg_channel *app_chnl = NULL;
-static app_message_t app_msg[STRING_BUFFER_CNT];
-static char app_buf[512]; /* Each RPMSG buffer can carry less than 512 payload */
-static uint8_t app_idx = 0;
-static uint8_t handler_idx = 0;
+//static app_message_t app_msg[STRING_BUFFER_CNT];
+//static char app_buf[512]; /* Each RPMSG buffer can carry less than 512 payload */
+//static uint8_t app_idx = 0;
+//static uint8_t handler_idx = 0;
 static volatile int32_t msg_count = 0;
 
 static void rpmsg_enable_rx_int(bool enable)
@@ -94,21 +95,16 @@ static void rpmsg_enable_rx_int(bool enable)
 static void rpmsg_read_cb(struct rpmsg_channel *rp_chnl, void *data, int len,
                 void * priv, unsigned long src)
 {
-    /*
-     * Temperorily Disable MU Receive Interrupt to avoid master
-     * sending too many messages and remote will fail to keep pace
-     * to consume (flow control)
-     */
+    // temporarily disable MU Receive Interrupt (flow control) (?) and hold the RPMsg rx buffer
     rpmsg_enable_rx_int(false);
-
-    /* Hold the RPMsg rx buffer to be used in main loop */
     rpmsg_hold_rx_buffer(rp_chnl, data);
-    app_msg[handler_idx].src = src;
-    app_msg[handler_idx].data = data;
-    app_msg[handler_idx].len = len;
 
-    /* Move to next free message index */
-    handler_idx = (handler_idx + 1) % STRING_BUFFER_CNT;
+    // process received data
+    PRINTF( "got %d bytes from %i\r\n", len, src );
+
+    // release the buffer and re-enable interrupts
+    rpmsg_release_rx_buffer(app_chnl, data);
+    rpmsg_enable_rx_int(true);
 }
 
 /* rpmsg_rx_callback will call into this for a channel creation event*/
@@ -141,9 +137,7 @@ void BOARD_MU_HANDLER(void)
 int main(void)
 {
     struct remote_device *rdev;
-    int len;
     void *tx_buf;
-    unsigned long size;
 
     hardware_init();
 
@@ -165,13 +159,50 @@ int main(void)
     /*
      * str_echo demo loop
      */
-    for (;;)
+    for( ; ; )
     {
-        /* Wait message to be available */
-        while (msg_count == 0)
-    {
-    }
-
+        char c = GETCHAR();
+        switch( c )
+        {
+        case '1':
+            PRINTF( "send packet with 1 message\r\n" );
+            // get tx buffer from RPMsg
+            unsigned long size;
+            tx_buf = rpmsg_alloc_tx_buffer( app_chnl, &size, RPMSG_TRUE );
+            assert( tx_buf );
+            uint16_t msg_count = 1;
+            size_t pkt_size = sizeof(packet_hdr_t) + ( sizeof( message_t ) * msg_count ) + sizeof( uint32_t ); 
+            assert( size >= pkt_size ); 
+            packet_hdr_t hdr;
+            hdr.start_byte = 0x55;
+            hdr.ack_req = 0;
+            hdr.msg_count = msg_count;
+            hdr.data_len = sizeof( message_t ) * msg_count;
+            void* tx_buf_ptr = tx_buf;
+            memcpy( tx_buf_ptr, &hdr, sizeof( packet_hdr_t ) );
+            tx_buf_ptr += sizeof( packet_hdr_t );
+            message_t msg;
+            for( int msg_num = 0; msg_num < msg_count; msg_num++ )
+            {
+                msg.cmd = 12;
+                msg.dev_addr = 3;
+                msg.ack = 1;
+                msg.timestamp = 12345678;
+                msg.value = 92;
+                memcpy( tx_buf_ptr, (void*)(&msg), sizeof( message_t ) );
+                tx_buf_ptr += sizeof( message_t );
+            }
+            uint32_t crc = 0x1234abcd;
+            memcpy( tx_buf_ptr, &crc, sizeof( uint32_t ) );
+                        
+            // send to A7
+            rpmsg_send_nocopy( app_chnl, tx_buf, pkt_size );
+            break;
+        default:
+            PRINTF( "send no messages\r\n" );
+            break;
+        }
+#if 0
         /* Copy string from RPMsg rx buffer */
         len = app_msg[app_idx].len;
         assert(len < sizeof(app_buf));
@@ -197,6 +228,7 @@ int main(void)
 
         /* Once a message is consumed, minus the msg_count and might enable MU interrupt again */
         rpmsg_enable_rx_int(true);
+#endif
     }
 }
 
